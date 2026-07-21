@@ -1,40 +1,44 @@
-// Elijah Kenning
-// COP3014, Professor Mishra, Fall 2024
+// Matrix Operations Program
+// Demonstrates C++ classes, dynamic memory allocation, the Rule of Three,
+// and fundamental matrix algebra operations.
 
-#ifndef MATRIX
-#define MATRIX
+#ifndef MATRIX_H
+#define MATRIX_H
 
 #include <iostream>
-using namespace std;
+#include <string>
 
-class Matrix
-{
+class Matrix {
 private:
-	int** matrix;
-	int rowVal;
-	int columnVal;
-	string matrixName;
+    int rowVal;
+    int columnVal;
+    std::string matrixName;
+    int** matrix;               // Dynamically allocated 2-D array
 
-	void allocateMemory();
-	void deallocateMemory();
+    void allocateMemory();
+    void deallocateMemory();
 
 public:
-	Matrix();
-	Matrix(int r, int c, string mName);
-	Matrix(const Matrix& matrixToCopy);
-	Matrix& operator=(const Matrix& matrixToCopy);
-	~Matrix();
+    // --- Constructors & Destructor (Rule of Three) ---
+    Matrix();                                           // Default: 3×3 named "matrix1", filled with 1s
+    Matrix(int r, int c, const std::string& mName);     // Parameterized constructor
+    Matrix(const Matrix& other);                        // Deep-copy constructor
+    Matrix& operator=(const Matrix& other);             // Deep-copy assignment
+    ~Matrix();                                          // Destructor – frees dynamic memory
 
-	int getCellVal(int r, int c);
-	int getRowVal();
-	int getColumnVal();
-	string getMatrixName();
-	void setMatrixName(string mName);
-	void setCellVal(int r, int c, int val);
+    // --- Accessors ---
+    int getCellVal(int r, int c) const;
+    int getRowVal() const;
+    int getColumnVal() const;
+    std::string getMatrixName() const;
 
-	void printMatrix();
+    // --- Mutators ---
+    void setMatrixName(const std::string& mName);
+    void setCellVal(int r, int c, int val);
 
-	void defaultPopulation();
+    // --- Utilities ---
+    void printMatrix() const;
+    void defaultPopulation();                           // Fill every cell with 1
 };
 
-#endif
+#endif // MATRIX_H

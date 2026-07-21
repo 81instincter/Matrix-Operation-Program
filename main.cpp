@@ -1,473 +1,354 @@
-// Elijah Kenning
-// COP3014, Professor Mishra, Fall 2024
+// Matrix Operations Program
+// Interactive terminal application that demonstrates a full-featured Matrix class
+// with dynamic memory management, the Rule of Three, and classic linear-algebra
+// operations (addition, subtraction, multiplication). Results can be exported
+// to CSV for further analysis.
 
 #include "matrix.h"
-#include <fstream> // contains support for input and output operations
+#include <fstream>
+#include <iostream>
+#include <limits>
 #include <string>
-#include <vector> // for storing matrices created for later copying modification
+#include <vector>
 
-// Matrix Operation Functions
- 
-Matrix matrixAddition(Matrix addend_matrix1, Matrix addend_matrix2) // WORKS
+// ---------------------------------------------------------------------------
+// Free functions – matrix arithmetic
+// ---------------------------------------------------------------------------
+
+// Returns true and writes the result into `out on success.
+// Returns false (and leaves out untouched) when dimensions are incompatible.
+bool matrixAddition(const Matrix& a, const Matrix& b, Matrix& out)
 {
-	if ((addend_matrix1.getRowVal() == addend_matrix2.getRowVal()) && (addend_matrix1.getColumnVal() == addend_matrix2.getColumnVal()))
-	{
-		int sumMatrix_rowVal = addend_matrix1.getRowVal();
-		int sumMatrix_columnVal = addend_matrix1.getColumnVal();
-		Matrix sumMatrix(sumMatrix_rowVal, sumMatrix_columnVal, "SumMatrix");
+    if (a.getRowVal() != b.getRowVal() || a.getColumnVal() != b.getColumnVal()) {
+        std::cout << "Unable to perform matrix addition: dimensions do not match.\n";
+        return false;
+    }
 
-		int cell_sum;
-
-		for (int i = 0; i < sumMatrix_rowVal; i++)
-		{
-			for (int j = 0; j < sumMatrix_columnVal; j++)
-			{
-				cell_sum = addend_matrix1.getCellVal(i, j) + addend_matrix2.getCellVal(i, j);
-				sumMatrix.setCellVal(i, j, cell_sum);
-			}
-			cout << endl;
-		}
-
-		cout << "After matrix addition" << endl;
-		return sumMatrix;
-	}
-	else
-	{
-		cout << "Unable to perform matrix addition due to incorrect dimensions." << endl;
-	}
+    out = Matrix(a.getRowVal(), a.getColumnVal(), "SumMatrix");
+    for (int i = 0; i < a.getRowVal(); ++i) {
+        for (int j = 0; j < a.getColumnVal(); ++j) {
+            out.setCellVal(i, j, a.getCellVal(i, j) + b.getCellVal(i, j));
+        }
+    }
+    std::cout << "Matrix addition completed successfully.\n";
+    return true;
 }
 
-Matrix matrixSubtraction(Matrix minuend_matrix, Matrix subtrahend_matrix) // WORKS
+bool matrixSubtraction(const Matrix& a, const Matrix& b, Matrix& out)
 {
-	// identifier
+    if (a.getRowVal() != b.getRowVal() || a.getColumnVal() != b.getColumnVal()) {
+        std::cout << "Unable to perform matrix subtraction: dimensions do not match.\n";
+        return false;
+    }
 
-	if ((minuend_matrix.getRowVal() == subtrahend_matrix.getRowVal()) && (minuend_matrix.getColumnVal() == subtrahend_matrix.getColumnVal()))
-	{
-		int differenceMatrix_rowVal = minuend_matrix.getRowVal();
-		int differenceMatrix_columnVal = minuend_matrix.getColumnVal();
-		Matrix differenceMatrix(differenceMatrix_rowVal, differenceMatrix_columnVal, "DifferenceMatrix");
-
-		int cell_difference;
-
-		for (int i = 0; i < differenceMatrix_rowVal; i++)
-		{
-			for (int j = 0; j < differenceMatrix_columnVal; j++)
-			{
-				cell_difference = minuend_matrix.getCellVal(i, j) - subtrahend_matrix.getCellVal(i, j);
-				differenceMatrix.setCellVal(i, j, cell_difference);
-			}
-			cout << endl;
-		}
-
-
-		cout << "After matrix subtraction" << endl;
-		return differenceMatrix;
-	}
-
-	else
-	{
-		cout << "Unable to perform matrix subtraction due to incorrect dimensions." << endl;
-	}
+    out = Matrix(a.getRowVal(), a.getColumnVal(), "DifferenceMatrix");
+    for (int i = 0; i < a.getRowVal(); ++i) {
+        for (int j = 0; j < a.getColumnVal(); ++j) {
+            out.setCellVal(i, j, a.getCellVal(i, j) - b.getCellVal(i, j));
+        }
+    }
+    std::cout << "Matrix subtraction completed successfully.\n";
+    return true;
 }
 
-
-Matrix matrixMultiplication(Matrix multiplicand_matrix, Matrix multiplier_matrix) // WORKS
+bool matrixMultiplication(const Matrix& a, const Matrix& b, Matrix& out)
 {
-	// identifier
+    // Classic rule: columns of A must equal rows of B
+    if (a.getColumnVal() != b.getRowVal()) {
+        std::cout << "Unable to perform matrix multiplication: "
+                  << "columns of first matrix must equal rows of second.\n";
+        return false;
+    }
 
-	// if the column value of the multiplicand matrix == to the row value of the multiplier_matrix, then can do a multiplication
-	if (multiplicand_matrix.getColumnVal() == multiplier_matrix.getRowVal())
-	{
-		// Product matrix dimensions: row value = row value of the multiplicand matrix, column value = column value of the multiplier matrix
-		int productMatrix_rowVal = multiplicand_matrix.getRowVal();
-		int productMatrix_columnVal = multiplier_matrix.getColumnVal();
-		Matrix productMatrix(productMatrix_rowVal, productMatrix_columnVal, "ProductMatrix");
-
-		/*
-		First two loops are the typical loops used for accessing 2D array values.
-		The innermost loop is the matrix multiplication, where it takes the product of the current row of the first matrix
-		and the current column of the second matrix, then sums up the parts.
-		*/
-		for (int i = 0; i < productMatrix_rowVal; i++)
-		{
-			for (int j = 0; j < productMatrix_columnVal; j++)
-			{
-				int cell_product_sum = 0;
-				for (int k = 0; k < multiplier_matrix.getRowVal(); k++)
-				{
-					cell_product_sum += multiplicand_matrix.getCellVal(i, k) * multiplier_matrix.getCellVal(k, j);
-					productMatrix.setCellVal(i, j, cell_product_sum);
-				}
-			}
-		}
-		cout << "After matrix multiplication" << endl;
-		return productMatrix;
-	}
-	else 
-	{
-		cout << "Unable to perform matrix multiplication due to incorrect dimensions." << endl;
-	}
+    out = Matrix(a.getRowVal(), b.getColumnVal(), "ProductMatrix");
+    for (int i = 0; i < a.getRowVal(); ++i) {
+        for (int j = 0; j < b.getColumnVal(); ++j) {
+            int sum = 0;
+            for (int k = 0; k < a.getColumnVal(); ++k) {
+                sum += a.getCellVal(i, k) * b.getCellVal(k, j);
+            }
+            out.setCellVal(i, j, sum);
+        }
+    }
+    std::cout << "Matrix multiplication completed successfully.\n";
+    return true;
 }
 
-Matrix userPopulateMatrixA()
+// ---------------------------------------------------------------------------
+// Helpers for interactive input
+// ---------------------------------------------------------------------------
+
+// Read a positive integer; re-prompt until the user supplies one.
+int readPositiveInt(const std::string& prompt)
 {
-	int r_a = 0, c_a = 0;
-
-	cout << "Matrix A:" << endl;
-	cout << "Enter a positive non-zero integer for Matrix A's row dimension: ";
-	cin >> r_a;
-	cout << "Enter a positive non-zero integer for Matrix A's column dimension: ";
-	cin >> c_a;
-
-	// Create Matrix A
-	Matrix matrixA(r_a, c_a, "MatrixA");
-
-	// Populating Matrix A
-	int userMatrixACellInput;
-	for (int i = 0; i < r_a; i++)
-	{
-		for (int j = 0; j < c_a; j++)
-		{
-			cout << "matrixA(" << i << "," << j << "): ";
-			cin >> userMatrixACellInput;
-			cout << endl;
-			matrixA.setCellVal(i, j, userMatrixACellInput);
-		}
-	}
-	return matrixA;
+    int value = 0;
+    while (true) {
+        std::cout << prompt;
+        if (std::cin >> value && value > 0) {
+            return value;
+        }
+        std::cout << "Please enter a positive non-zero integer.\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
 }
 
-Matrix userPopulateMatrixB()
+// Build a matrix by asking the user for dimensions and every cell value.
+Matrix userPopulateMatrix(const std::string& label)
 {
-	int r_b = 0, c_b = 0;
+    std::cout << "\n--- " << label << " ---\n";
+    int rows = readPositiveInt("Enter row dimension: ");
+    int cols = readPositiveInt("Enter column dimension: ");
 
-	cout << "Matrix B:" << endl;
-	cout << "Enter a positive non-zero integer for Matrix B's row dimension: ";
-	cin >> r_b;
-	cout << "Enter a positive non-zero integer for Matrix B's column dimension: ";
-	cin >> c_b;
-
-	// Create Matrix B
-	Matrix matrixB(r_b, c_b, "MatrixB");
-
-	// Populating Matrix B
-	int userMatrixBCellInput;
-	for (int i = 0; i < r_b; i++)
-	{
-		for (int j = 0; j < c_b; j++)
-		{
-			cout << "matrixB(" << i << "," << j << "): ";
-			cin >> userMatrixBCellInput;
-			cout << endl;
-			matrixB.setCellVal(i, j, userMatrixBCellInput);
-		}
-	}
-	return matrixB;
+    Matrix m(rows, cols, label);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            int val = 0;
+            std::cout << label << "(" << i << "," << j << "): ";
+            std::cin >> val;
+            m.setCellVal(i, j, val);
+        }
+    }
+    return m;
 }
 
-void saveToCSV(vector<Matrix> matrixObjVec, vector<string> names)
+// Write every stored matrix into results.csv (one matrix after another).
+void saveToCSV(const std::vector<Matrix>& matrices,
+               const std::vector<std::string>& names)
 {
-	fstream fout;
-	fout.open("results.csv");
-	if (!fout.is_open())
-	{
-		cout << "Error: The file could not be opened" << endl;
-	}
-	// Printing the matrix names
+    std::ofstream fout("results.csv");
+    if (!fout.is_open()) {
+        std::cerr << "Error: could not open results.csv for writing.\n";
+        return;
+    }
 
-	// Insert the data into the results.csv file
-	for (int e = 0; e < matrixObjVec.size(); e++)
-	{
-		fout << names.at(e) << "\n";
-		for (int r = 0; r < matrixObjVec.at(e).getRowVal(); r++) // iterate through the rows first
-		{
-			for (int c = 0; c < matrixObjVec.at(e).getColumnVal() ; c++) // iterate through the columns next
-			{
-				fout << matrixObjVec.at(e).getCellVal(r, c) << ",";
-			}
-			fout << "\n";
-		}
-		fout << "\n";
-		// need to work on the formatting
-	}
-}
-	
-
-void mainMenuOptions()
-{
-	cout << endl;
-	cout << "---Main Menu---" << endl;
-	cout << "1. Default Constructor" << endl;
-	cout << "2. Parametrized Constructor" << endl;
-	cout << "3. Copy Constructor" << endl;
-	cout << "4. Copy Assignment Operator" << endl;
-	cout << "5. Add Two Matrices Together" << endl;
-	cout << "6. Subtract a Matrix from Another" << endl;
-	cout << "7. Multiply a Matrix with Another" << endl;
-	cout << "8. Print matrixObjectsVec" << endl;
-	cout << "9. Copy the Matrices to results.csv" << endl;
-	cout << "10. Exit" << endl;
-	cout << endl;
+    for (std::size_t e = 0; e < matrices.size(); ++e) {
+        fout << names[e] << '\n';
+        for (int r = 0; r < matrices[e].getRowVal(); ++r) {
+            for (int c = 0; c < matrices[e].getColumnVal(); ++c) {
+                fout << matrices[e].getCellVal(r, c);
+                if (c + 1 < matrices[e].getColumnVal()) {
+                    fout << ',';
+                }
+            }
+            fout << '\n';
+        }
+        fout << '\n';
+    }
+    std::cout << "Matrices successfully written to results.csv\n";
 }
 
+void printMainMenu()
+{
+    std::cout << "\n========== Matrix Operations ==========\n"
+              << " 1. Create matrix  (default constructor)\n"
+              << " 2. Create matrix  (parameterized constructor)\n"
+              << " 3. Copy constructor demo\n"
+              << " 4. Copy-assignment operator demo\n"
+              << " 5. Add two matrices\n"
+              << " 6. Subtract two matrices\n"
+              << " 7. Multiply two matrices\n"
+              << " 8. Print all stored matrices\n"
+              << " 9. Export all matrices to results.csv\n"
+              << "10. Exit\n"
+              << "=======================================\n"
+              << "Enter your choice: ";
+}
 
+// ---------------------------------------------------------------------------
+// Main driver
+// ---------------------------------------------------------------------------
 
 int main()
 {
-	int choice;
+    std::vector<Matrix>      matrixObjects;
+    std::vector<std::string> matrixNames;
 
-	vector<Matrix> matrixObjectsVec; // used for copy constructor and copy assignment operator 
-	vector<string> matrixObjectsNameVec; 
+    int choice = 0;
+    while (true) {
+        printMainMenu();
+        if (!(std::cin >> choice)) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter a number 1-10.\n";
+            continue;
+        }
 
-	while (true)
-	{
-		mainMenuOptions();
-		cout << "Enter your choice: ";
-		cin >> choice;
-		cout << endl;
+        switch (choice) {
+        // -----------------------------------------------------------------
+        // 1. Default constructor
+        // -----------------------------------------------------------------
+        case 1: {
+            Matrix m;                       // 3×3 filled with 1s
+            std::cout << "\n--- Default Matrix Created ---\n";
+            m.printMatrix();
+            matrixObjects.push_back(m);
+            matrixNames.push_back(m.getMatrixName());
+            break;
+        }
 
-		if (choice == 1) // WORKS
-		{
-			Matrix DefaultMatrix;
-			cout << "---Default Matrix Created---" << endl;
-			DefaultMatrix.printMatrix();
-			matrixObjectsVec.push_back(DefaultMatrix);
-			matrixObjectsNameVec.push_back(DefaultMatrix.getMatrixName());
-		}
+        // -----------------------------------------------------------------
+        // 2. Parameterized constructor (create up to 3 custom matrices)
+        // -----------------------------------------------------------------
+        case 2: {
+            for (int n = 0; n < 3; ++n) {
+                std::string name = "matrix" + std::to_string(n + 2);
+                int rows = readPositiveInt("\nEnter row dimension: ");
+                int cols = readPositiveInt("Enter column dimension: ");
 
-		else if (choice == 2) //WORKS
-		{
-			int r, c;
+                Matrix m(rows, cols, name);
+                for (int i = 0; i < rows; ++i) {
+                    for (int j = 0; j < cols; ++j) {
+                        int val = 0;
+                        std::cout << name << "(" << i << "," << j << "): ";
+                        std::cin >> val;
+                        m.setCellVal(i, j, val);
+                    }
+                }
+                m.printMatrix();
+                matrixObjects.push_back(m);
+                matrixNames.push_back(name);
+            }
+            break;
+        }
 
-			int numParaMatricesCreated = 1;
+        // -----------------------------------------------------------------
+        // 3. Copy constructor demo
+        // -----------------------------------------------------------------
+        case 3: {
+            if (matrixObjects.empty()) {
+                std::cout << "No matrices stored yet. Create one first (option 1 or 2).\n";
+                break;
+            }
+            std::cout << "Stored matrices (0-based index):\n";
+            for (std::size_t i = 0; i < matrixObjects.size(); ++i) {
+                std::cout << "  [" << i << "] " << matrixNames[i] << '\n';
+            }
+            int idx = 0;
+            std::cout << "Enter index of matrix to copy: ";
+            std::cin >> idx;
+            if (idx < 0 || static_cast<std::size_t>(idx) >= matrixObjects.size()) {
+                std::cout << "Invalid index.\n";
+                break;
+            }
 
-			while (numParaMatricesCreated != 4)
-			{
-				cout << "Enter the row and column dimensions of the matrix you want to make:" << endl;
-				cout << "Enter a positive integer for the row dimension: ";
-				// prompting a positive integer input until user does so
-				while (true)
-				{
-					cin >> r;
-					if (r <= 0)
-					{
-						cout << "Please enter a positive non-zero integer for the row dimension: " << endl;
-					}
-					else
-					{
-						break;
-					}
-				}
-				cout << endl;
-				cout << "Enter a positive integer for the column dimension: ";
-				// prompting a positive integer input until user does so
-				while (true)
-				{
-					cin >> c;
-					if (c <= 0)
-					{
-						cout << "Please enter a positive non-zero integer for the column dimension: " << endl;
-					}
-					else
-					{
-						break;
-					}
-				}
-				cout << endl;
+            Matrix copy(matrixObjects[idx]);          // invokes copy ctor
+            copy.setMatrixName(matrixNames[idx] + "_copy");
+            std::cout << "\nCopied matrix:\n";
+            copy.printMatrix();
 
-				string paraMatName = "matrix" + to_string(numParaMatricesCreated + 1); // concatenate to get matrix name 
+            matrixObjects.push_back(copy);
+            matrixNames.push_back(copy.getMatrixName());
+            break;
+        }
 
-				// Create the ParameterizedMatrix object
-				Matrix ParameterizedMatrix(r, c, paraMatName);
-				
-				// Populating Parameterized Matrix 
-				int userParaMatrixCellInput;
-				for (int i = 0; i < r; i++)
-				{
-					for (int j = 0; j < c; j++)
-					{
-						cout << "matrix" << numParaMatricesCreated + 1 << "(" << i << "," << j << "): ";
-						cin >> userParaMatrixCellInput;
-						cout << endl;
-						ParameterizedMatrix.setCellVal(i, j, userParaMatrixCellInput);
-					}
-				}
-				ParameterizedMatrix.printMatrix();
-				cout << ParameterizedMatrix.getMatrixName() << endl;
-				matrixObjectsVec.push_back(ParameterizedMatrix);
-				matrixObjectsNameVec.push_back(ParameterizedMatrix.getMatrixName());
-				++numParaMatricesCreated;
-			}
-			cout << endl;
-		}
+        // -----------------------------------------------------------------
+        // 4. Copy-assignment operator demo
+        // -----------------------------------------------------------------
+        case 4: {
+            if (matrixObjects.empty()) {
+                std::cout << "No matrices stored yet. Create one first (option 1 or 2).\n";
+                break;
+            }
+            std::cout << "Stored matrices (0-based index):\n";
+            for (std::size_t i = 0; i < matrixObjects.size(); ++i) {
+                std::cout << "  [" << i << "] " << matrixNames[i] << '\n';
+            }
+            int idx = 0;
+            std::cout << "Enter index of matrix to assign-from: ";
+            std::cin >> idx;
+            if (idx < 0 || static_cast<std::size_t>(idx) >= matrixObjects.size()) {
+                std::cout << "Invalid index.\n";
+                break;
+            }
 
-		// Copy constructor
-		else if (choice == 3)
-		{
-			int copyConstructorNum;
-			cout << "Enter the matrix number (1-4) you want to copy into a new matrix to be created: ";
-			while (true)
-			{
-				cin >> copyConstructorNum;
-				if (copyConstructorNum > 4 || copyConstructorNum < 1)
-				{
-					cout << "Please enter a matrix number between 1 and 4: ";
-				}
-				else
-				{
-					// copy constructor code
-					Matrix matrixToCopy(matrixObjectsVec.at(copyConstructorNum - 1));
+            Matrix assigned;                              // default 3×3
+            assigned = matrixObjects[idx];                // invokes operator=
+            assigned.setMatrixName(matrixNames[idx] + "_assigned");
+            std::cout << "\nAssigned matrix:\n";
+            assigned.printMatrix();
 
-					cout << "Copied matrix:" << endl;
-					matrixToCopy.setMatrixName("matrix5");
-					matrixToCopy.printMatrix();
-					cout << endl;
-					break;
-				}
-			}
-			cout << endl;
-		}
+            matrixObjects.push_back(assigned);
+            matrixNames.push_back(assigned.getMatrixName());
+            break;
+        }
 
-		// Copy assignment operator
-		else if (choice == 4)
-		{
-			int copyAssignmentNum;
-			int mainMenuValue;
-			cout << "Before continuing, go back to the main menu and use option 8 to see which index value the matrix you want to copy has.\n";
-			while (true)
-			{
-				cout << "Enter 0 to go back to the main menu if you do not know the index value. Otherwise, enter -1 to continue: ";
-				cin >> mainMenuValue;
-				if (mainMenuValue != 0 && mainMenuValue != -1)
-				{
-					cout << "Please enter 0 or -1." << endl;
-				}
-				else if (mainMenuValue == 0)
-				{
-					break;
-				}
-				else if (mainMenuValue == -1)
-				{
-					while (true)
-					{
-						cout << "Enter the index value of the matrix number(1-5) you want to copy into another matrix: ";
-						cin >> copyAssignmentNum;
-						if (copyAssignmentNum > matrixObjectsVec.size() || copyAssignmentNum < 0)
-						{
-							cout << "Please enter a valid index value for the matrix number you want to copy into another matrix (1-5)." << endl;
-						}
-						else
-						{
-							Matrix matrix6(matrixObjectsVec.at(copyAssignmentNum));
-							matrix6.setMatrixName("matrix6");
-							matrixObjectsVec.push_back(matrix6);
-							matrixObjectsNameVec.push_back("matrix6");
-							matrix6.printMatrix();
-							break;
-						}
-					}
-				}
-			}
-		}
+        // -----------------------------------------------------------------
+        // 5 / 6 / 7. Arithmetic operations
+        // -----------------------------------------------------------------
+        case 5:
+        case 6:
+        case 7: {
+            Matrix a = userPopulateMatrix("MatrixA");
+            a.printMatrix();
+            Matrix b = userPopulateMatrix("MatrixB");
+            b.printMatrix();
 
-		// Matrix Addition
-		else if (choice == 5) // WORKS
-		{
+            Matrix result;
+            bool ok = false;
+            std::string opName;
 
-			cout << "You will create two matrices to do matrix operations on." << endl;
-			Matrix matrix_a = userPopulateMatrixA();
-			matrix_a.printMatrix();
-			Matrix matrix_b = userPopulateMatrixB();
-			matrix_b.printMatrix();
+            if (choice == 5) {
+                ok = matrixAddition(a, b, result);
+                opName = "After Matrix Addition";
+            } else if (choice == 6) {
+                ok = matrixSubtraction(a, b, result);
+                opName = "After Matrix Subtraction";
+            } else {
+                ok = matrixMultiplication(a, b, result);
+                opName = "After Matrix Multiplication";
+            }
 
-			Matrix sum = matrixAddition(matrix_a, matrix_b);
-			sum.printMatrix();
-			cout << endl;
+            if (ok) {
+                result.printMatrix();
+                // Only store a result when the operation actually succeeded
+                matrixObjects.push_back(result);
+                matrixNames.push_back(opName);
+            }
+            break;
+        }
 
-			// add appropriate data to the vectors
-			matrixObjectsVec.push_back(sum);
-			matrixObjectsNameVec.push_back("After Matrix Addition Operation"); //*****
+        // -----------------------------------------------------------------
+        // 8. Print everything currently stored
+        // -----------------------------------------------------------------
+        case 8: {
+            if (matrixObjects.empty()) {
+                std::cout << "No matrices stored yet.\n";
+                break;
+            }
+            std::cout << "\n--- Stored Matrices ---\n";
+            for (std::size_t i = 0; i < matrixObjects.size(); ++i) {
+                std::cout << "\n[" << i << "] " << matrixNames[i] << ":\n";
+                matrixObjects[i].printMatrix();
+            }
+            break;
+        }
 
-			// code to continue while loop even after incorrect dimensions are given
-		}
-		// Matrix Subtraction
-		else if (choice == 6) // WORKS
-		{
-			cout << "You will create two matrices to do matrix operations on." << endl;
-			Matrix matrix_a = userPopulateMatrixA();
-			matrix_a.printMatrix();
-			Matrix matrix_b = userPopulateMatrixB();
-			matrix_b.printMatrix();
+        // -----------------------------------------------------------------
+        // 9. Export to CSV
+        // -----------------------------------------------------------------
+        case 9: {
+            if (matrixObjects.empty()) {
+                std::cout << "Nothing to export.\n";
+                break;
+            }
+            saveToCSV(matrixObjects, matrixNames);
+            break;
+        }
 
-			Matrix difference = matrixSubtraction(matrix_a, matrix_b);
-			difference.printMatrix();
-			cout << endl;
+        // -----------------------------------------------------------------
+        // 10. Exit
+        // -----------------------------------------------------------------
+        case 10: {
+            std::cout << "Exiting program. Goodbye!\n";
+            matrixObjects.clear();
+            matrixNames.clear();
+            return 0;
+        }
 
-			// add appropriate data to the vectors
-			matrixObjectsVec.push_back(difference);
-			matrixObjectsNameVec.push_back("After Matrix Subtraction Operation"); //*****
-
-			// code to continue while loop even after incorrect dimensions are given
-		}
-		// Matrix multiplication
-		else if (choice == 7) // WORKS
-		{
-			cout << "You will create two matrices to do matrix operations on." << endl;
-			Matrix matrix_a = userPopulateMatrixA();
-			matrix_a.printMatrix();
-			Matrix matrix_b = userPopulateMatrixB();
-			matrix_b.printMatrix();
-
-			Matrix product = matrixMultiplication(matrix_a, matrix_b);
-			product.printMatrix();
-			cout << endl;
-
-			// add appropriate data to the vectors
-			matrixObjectsVec.push_back(product);
-			matrixObjectsNameVec.push_back("After Matrix Multiplication Operation"); //*****
-
-			// code to continue while loop even after incorrect dimensions are given
-		}
-		else if (choice == 8)
-		{
-			for (int i = 0; i < matrixObjectsVec.size(); i++)
-			{
-				cout << "Element " << i << ", " + matrixObjectsNameVec.at(i) <<":" << endl; 
-				matrixObjectsVec.at(i).printMatrix();
-			}
-		}
-		else if (choice == 9) // WORKS
-		{
-			saveToCSV(matrixObjectsVec, matrixObjectsNameVec); // WORKS
-			cout << "Matrices copied to results.csv" << endl;
-			cout << endl;
-		}
-		else if (choice == 10) // WORKS
-		{
-			cout << "Exiting program. Goodbye." << endl;
-			matrixObjectsVec.clear(); // empties out matrixObjectsVec once program is exited to free up memory
-			matrixObjectsNameVec.clear();
-			break;
-		}
-		else
-		{
-			cout << "Please enter a valid number for one of the options." << endl;
-		}
-	}
-	
-
-	return 0;
+        default:
+            std::cout << "Please enter a valid option (1-10).\n";
+            break;
+        }
+    }
 }
-
-/*
-Sources:
-
-Making sense of dynamic 2D arrays: https://www.youtube.com/watch?v=mGl9LO-je3o
-Matrix multiplication: https://www.geeksforgeeks.org/cpp-matrix-multiplication/
-File management: https://www.geeksforgeeks.org/csv-file-management-using-c/
-Prompting user for appropriate input until they do so: https://stackoverflow.com/questions/41475922/prompt-user-input-until-correct-c
-Emptying a vector: https://www.techiedelight.com/delete-vector-free-memory-cpp/
-*/
-
-
-//***** = tiny bug that needs modification later but nothing that is program breaking

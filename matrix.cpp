@@ -1,166 +1,157 @@
-// Elijah Kenning
-// COP3014, Professor Mishra, Fall 2024
+// Matrix Operations Program
 
 #include "matrix.h"
 
+// ---------------------------------------------------------------------------
+// Constructors & Destructor
+// ---------------------------------------------------------------------------
+
 Matrix::Matrix()
+    : rowVal(3), columnVal(3), matrixName("matrix1"), matrix(nullptr)
 {
-	rowVal = 3;
-	columnVal = 3;
-	matrixName = "matrix1";
-	allocateMemory();
-	defaultPopulation();
+    allocateMemory();
+    defaultPopulation();
 }
 
-Matrix::Matrix(int r, int c, string mName)
+Matrix::Matrix(int r, int c, const std::string& mName)
+    : rowVal(r), columnVal(c), matrixName(mName), matrix(nullptr)
 {
-	rowVal = r;
-	columnVal = c;
-	matrixName = mName;
-	allocateMemory();
-	defaultPopulation();
+    allocateMemory();
+    defaultPopulation();
 }
 
-Matrix::Matrix(const Matrix& original_matrix) // copy constructor
+// Deep-copy constructor (Rule of Three)
+Matrix::Matrix(const Matrix& other)
+    : rowVal(other.rowVal), columnVal(other.columnVal),
+      matrixName(other.matrixName), matrix(nullptr)
 {
-	// Copy the values of the original matrix to the copied matrix
-	rowVal = original_matrix.rowVal;
-	columnVal = original_matrix.columnVal;
-
-	allocateMemory();
-
-	for (int i = 0; i < rowVal; i++)
-	{
-		for (int j = 0; j < columnVal; j++)
-		{
-			matrix[i][j] = original_matrix.matrix[i][j];
-			// copies the values stored in the original_matrix
-			// into the copied matrix 
-		}
-	}
+    allocateMemory();
+    for (int i = 0; i < rowVal; ++i) {
+        for (int j = 0; j < columnVal; ++j) {
+            matrix[i][j] = other.matrix[i][j];
+        }
+    }
 }
 
-Matrix& Matrix::operator=(const Matrix& original_matrix)
+// Deep-copy assignment operator (Rule of Three)
+Matrix& Matrix::operator=(const Matrix& other)
 {
-	if (this == &original_matrix) // For self-assignment
-	{
-		return *this;
-	}
+    if (this == &other) {               // Guard against self-assignment
+        return *this;
+    }
 
-	if (matrix) // Frees memory taken by the private matrix data member
-	{
-		deallocateMemory();
-	}
+    // Free existing resources
+    if (matrix) {
+        deallocateMemory();
+    }
 
-	rowVal = original_matrix.rowVal;
-	columnVal = original_matrix.columnVal;
+    rowVal     = other.rowVal;
+    columnVal  = other.columnVal;
+    matrixName = other.matrixName;
 
-	// Allocating the copying the data
-	allocateMemory();
-	for (int i = 0; i < rowVal; i++)
-	{
-		for (int j = 0; j < columnVal; j++)
-		{
-			matrix[i][j] = original_matrix.matrix[i][j];
-		}
-	}
-	return *this;
+    allocateMemory();
+    for (int i = 0; i < rowVal; ++i) {
+        for (int j = 0; j < columnVal; ++j) {
+            matrix[i][j] = other.matrix[i][j];
+        }
+    }
+    return *this;
 }
 
 Matrix::~Matrix()
 {
-	if (matrix)
-	{
-		cout << "Destructor called" << endl;
-		deallocateMemory();
-	}
+    if (matrix) {
+        deallocateMemory();
+    }
 }
 
-// Memory functions
+// ---------------------------------------------------------------------------
+// Private memory helpers
+// ---------------------------------------------------------------------------
 
 void Matrix::allocateMemory()
 {
-	matrix = new int* [rowVal];
-	for (int i = 0; i < rowVal; i++)
-	{
-		matrix[i] = new int[columnVal];
-	}
+    matrix = new int*[rowVal];
+    for (int i = 0; i < rowVal; ++i) {
+        matrix[i] = new int[columnVal]();   // zero-initialize
+    }
 }
 
 void Matrix::deallocateMemory()
 {
-	for (int i = 0; i < rowVal; i++)
-	{
-		delete[] matrix[i];
-		// deallocate the array matrix[i] is pointing to
-		// i.e. the array of the actual values
-	}
-	delete[] matrix; // deallocate the array of pointers 
-	matrix = NULL; // prevent potential crashes and errors
-}	// may need to comment out matrix =NULL;
-
-
-// Getter and Setter Functions
-
-int Matrix::getCellVal(int r, int c)
-{
-	if (r < 0 || r >= rowVal || c < 0 || c >= columnVal)
-	{
-		cout << "Out of range. Enter a different index." << endl;
-	}
-	return matrix[r][c];
+    for (int i = 0; i < rowVal; ++i) {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+    matrix = nullptr;
 }
 
-int Matrix::getRowVal() // WORKS
+// ---------------------------------------------------------------------------
+// Accessors
+// ---------------------------------------------------------------------------
+
+int Matrix::getCellVal(int r, int c) const
 {
-	return rowVal;
+    if (r < 0 || r >= rowVal || c < 0 || c >= columnVal) {
+        std::cerr << "Error: index (" << r << "," << c << ") out of range.\n";
+        return 0;
+    }
+    return matrix[r][c];
 }
 
-int Matrix::getColumnVal() // WORKS
+int Matrix::getRowVal() const
 {
-	return columnVal;
+    return rowVal;
 }
 
-string Matrix::getMatrixName()
+int Matrix::getColumnVal() const
 {
-	return matrixName;
+    return columnVal;
 }
 
-void Matrix::setMatrixName(string mName)
+std::string Matrix::getMatrixName() const
 {
-	matrixName = mName;
+    return matrixName;
 }
 
-void Matrix::setCellVal(int r, int c, int val) // WORKS
+// ---------------------------------------------------------------------------
+// Mutators
+// ---------------------------------------------------------------------------
+
+void Matrix::setMatrixName(const std::string& mName)
 {
-	// have to work with row and column values of 0 to r - 1 and 0 to c - 1
-	if (r < 0 || r >= rowVal || c < 0 || c >= columnVal)
-	{
-		cout << "Out of range. Enter a different index." << endl;
-	}
-	matrix[r][c] = val;
+    matrixName = mName;
 }
 
-void Matrix::printMatrix()
+void Matrix::setCellVal(int r, int c, int val)
 {
-	cout << matrixName << endl;
-	for (int i = 0; i < rowVal; i++)
-	{
-		for (int j = 0; j < columnVal; j++)
-		{
-			cout << matrix[i][j] << " ";
-		}
-		cout << endl;
-	}
+    if (r < 0 || r >= rowVal || c < 0 || c >= columnVal) {
+        std::cerr << "Error: index (" << r << "," << c << ") out of range.\n";
+        return;
+    }
+    matrix[r][c] = val;
+}
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+void Matrix::printMatrix() const
+{
+    std::cout << matrixName << " (" << rowVal << "×" << columnVal << ")\n";
+    for (int i = 0; i < rowVal; ++i) {
+        for (int j = 0; j < columnVal; ++j) {
+            std::cout << matrix[i][j] << (j + 1 < columnVal ? " " : "");
+        }
+        std::cout << '\n';
+    }
 }
 
 void Matrix::defaultPopulation()
 {
-	for (int i = 0; i < rowVal; i++)
-	{
-		for (int j = 0; j < columnVal; j++)
-		{
-			matrix[i][j] = 1;
-		}
-	}
+    for (int i = 0; i < rowVal; ++i) {
+        for (int j = 0; j < columnVal; ++j) {
+            matrix[i][j] = 1;
+        }
+    }
 }

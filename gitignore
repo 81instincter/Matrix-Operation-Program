@@ -1,0 +1,26 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.out
+matrix-ops
+main
+a.out
+build/
+bin/
+*.dSYM/
+
+# Generated output
+results.csv
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Debug
+*.gcda
+*.gcno
+*.gcov
