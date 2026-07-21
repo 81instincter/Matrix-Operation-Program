@@ -5,7 +5,6 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 Interactive terminal-based **matrix calculator** written in modern C++.  
-Originally developed as the end-of-semester project for **COP3014 (Programming II)** at the University of West Florida (Fall 2024).
 
 The program showcases a complete `Matrix` class that owns a dynamically allocated 2-D array, implements the **Rule of Three**, and supports the three fundamental matrix operations used throughout linear algebra and computer graphics.
 
