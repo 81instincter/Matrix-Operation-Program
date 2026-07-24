@@ -150,7 +150,7 @@ After Matrix Multiplication
 
 These would be natural next steps for a production-grade linear-algebra library.
 
-# Author
+## Author
 **Elijah Kenning.**
 
 ## License
