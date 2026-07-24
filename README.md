@@ -130,7 +130,7 @@ After Matrix Multiplication
 
 ---
 
-## Technical Highlights (for recruiters)
+## Technical Highlights
 
 - **Dynamic memory management** – raw `new[]` / `delete[]` with careful ownership (pre-smart-pointer teaching style)
 - **Rule of Three** fully implemented: copy constructor, copy-assignment, destructor
@@ -142,7 +142,7 @@ After Matrix Multiplication
 
 ---
 
-## Known Limitations (honest self-assessment)
+## Known Limitations
 
 - Matrices store only `int` values (no floating-point / template version yet)
 - No move semantics (Rule of Five) – intentionally kept to the Rule of Three taught in the course
@@ -150,7 +150,8 @@ After Matrix Multiplication
 
 These would be natural next steps for a production-grade linear-algebra library.
 
----
+# Author
+**Elijah Kenning.**
 
 ## License
 
